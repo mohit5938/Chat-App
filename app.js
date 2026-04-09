@@ -40,7 +40,7 @@ app.use(cookieParser());
 const port = process.env.PORT || 4000 ;
 
 app.use(cors({
-    origin: "https://chat-app-client-cyan-eight.vercel.app",
+    origin: process.env.CLIENT_URL,
     credentials: true,
 
 }))
