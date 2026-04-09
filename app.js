@@ -30,6 +30,7 @@ export const io = new Server(server, {
     }
 });
 
+console.log("error find", process.env.CLIENT_URL)
 
 io.use(socketAuthMiddleware);
 
