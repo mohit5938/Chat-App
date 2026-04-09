@@ -20,6 +20,7 @@ import { socketAuthMiddleware } from './middlewares/socketMiddleware.js'
 db();
 
 const app = express();
+app.set("trust proxy", 1);
 const server = createServer(app);
 export const io = new Server(server, {
     cors: {
