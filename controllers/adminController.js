@@ -23,6 +23,7 @@ return res.status(200).cookie("adminToken",token,{
     httpOnly: true,
     secure: true,
     sameSite: "none",
+    path: "/",
     maxAge: 24 * 60 * 60 * 1000
 }).json({
     success: true,
@@ -42,6 +43,7 @@ export const adminLogut = async( req , res ) => {
             httpOnly: true,
             secure: true,
             sameSite: "none",
+            path: "/",
             maxAge: 0,
         }).json({
             success: true,
