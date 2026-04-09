@@ -70,7 +70,7 @@ export const getMyChats = async (req, res) => {
                     ? members
                         .slice(0, 3)
                         .map(m => m?.avatar?.url)
-                        .filter(Boolean)   // 🔥 remove empty/null
+                        .filter(Boolean)  
                     : [otherMember?.avatar?.url].filter(Boolean),
                 name: isGroupChat ? name : otherMember?.name || "Unknown User",
                 members: members.reduce((prev, curr) => {

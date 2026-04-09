@@ -17,9 +17,18 @@ export const verifyToken = (req, res, next) => {
         req.user = decoded; // { _id, email, name, ... }
         next();
     } catch (error) {
+        res.clearCookie("token");
+
+        if (error.name === "TokenExpiredError") {
+            return res.status(401).json({
+                success: false,
+                message: "Token expired",
+            });
+        }
+
         return res.status(401).json({
             success: false,
-            message: error.message,
+            message: "Invalid token",
         });
     }
 };

@@ -13,7 +13,6 @@ import {
     CHAT_JOINED,
     CHAT_LEAVED
 } from './constants/event.js'
-import { v4 as uuidv4 } from "uuid"
 import {getSockets} from './lib/helper.js'
 import {Message} from './models/messageSchema.js'
 import cors from 'cors'
@@ -24,7 +23,7 @@ const app = express();
 const server = createServer(app);
 export const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: process.env.CLIENT_URL,
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -39,7 +38,7 @@ app.use(cookieParser());
 const port = process.env.PORT || 4000 ;
 
 app.use(cors({
-    origin:[ "http://localhost:5173"],
+    origin: process.env.CLIENT_URL,
     credentials: true,
 
 }))
@@ -127,7 +126,7 @@ const membersIDs = getSockets(members);
 
 
      } catch (error) {
-       
+         console.error(error);
          socket.emit("ERROR", "Message not sent");
      }
    

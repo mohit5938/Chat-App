@@ -62,10 +62,10 @@ export const register = async (req, res) => {
 }
 
 export const login = async (req, res) => {
-    
+
     try {
-       
-     
+
+
         const { email, password } = req.body;
         if (!email || !password) {
             return res.status(400).send({
@@ -87,14 +87,14 @@ export const login = async (req, res) => {
                 message: "Please login using Google ",
             });
         }
-        // const hashedPassword = user.password;
-        // const comparePassword = await bcrypt.compare(password, hashedPassword)
-        // if (!comparePassword) {
-        //     return res.json({
-        //         success: false,
-        //         message: "password is wrong",
-        //     })
-        // }
+        const hashedPassword = user.password;
+        const comparePassword = await bcrypt.compare(password, hashedPassword)
+        if (!comparePassword) {
+            return res.json({
+                success: false,
+                message: "password is wrong",
+            })
+        }
         const token = jwt.sign({
             _id: user._id,
             role: user.role,
@@ -106,8 +106,8 @@ export const login = async (req, res) => {
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: false,
-            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production" ? true : false,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             maxAge: 24 * 60 * 60 * 1000
         })
         const newUser = user.toObject({ getters: true })
@@ -125,7 +125,7 @@ export const login = async (req, res) => {
 
 export const googleLogin = async (req, res) => {
     try {
-        const { name,username, email, avatar } = req.body;
+        const { name, username, email, avatar } = req.body;
         let user
         user = await User.findOne({ email })
         if (!user) {
@@ -153,8 +153,8 @@ export const googleLogin = async (req, res) => {
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: true,
-            sameSite: "none",
+            secure: process.env.NODE_ENV === "production" ? true : false,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             maxAge: 24 * 60 * 60 * 1000
 
         })
@@ -175,9 +175,10 @@ export const logout = async (req, res) => {
     try {
         res.clearCookie("token", {
             httpOnly: true,
-            secure: false,
-            sameSite: "lax",   
-            path: "/",         
+            secure: process.env.NODE_ENV === "production" ? true : false,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 24 * 60 * 60 * 1000,
+            path: "/",
         });
         return res.status(200).json({
             success: true,
@@ -216,11 +217,11 @@ export const getProfile = async (req, res) => {
 export const SearchUser = async (req, res) => {
     try {
         const { name = "" } = req.query;
-       
+
         const myChats = await Chat.find({
-             isGroupChat: false,
-             members: req.user._id 
-            })
+            isGroupChat: false,
+            members: req.user._id
+        })
 
         const allusersFromMyChats = myChats.flatMap((chat) =>
             chat.members.filter(
@@ -241,7 +242,6 @@ export const SearchUser = async (req, res) => {
             avatar: avatar.url,
         }));
 
-       
         return res.status(200).json({
             success: true,
             users: formattedUsers,
@@ -261,14 +261,14 @@ export const sendFriendRequest = async (req, res) => {
     try {
 
         const { userId } = req.body;
-  
+
         const request = await Request.findOne({
             $or: [
                 { sender: req.user._id, receiver: userId },
                 { sender: userId, receiver: req.user._id }
             ]
         });
-        
+
         if (request) {
             return res.status(400).json({
                 success: false,
@@ -329,7 +329,7 @@ export const acceptRequest = async (req, res) => {
             Chat.create({
                 members,
                 name: `${request.sender.name}-${request.receiver.name}`,
-                creator: req.user._id ,
+                creator: req.user._id,
             })
             ,
             request.deleteOne()
@@ -356,7 +356,7 @@ export const getNotification = async (req, res) => {
 
         }).populate("sender", "name avatar")
 
-        if( !requests) {
+        if (!requests) {
             return res.status(400).json({
                 success: false,
                 message: "no request found",
@@ -374,8 +374,8 @@ export const getNotification = async (req, res) => {
             }
         ))
         return res.status(200).json({
-            success:true,
-            notifications:allRequests
+            success: true,
+            notifications: allRequests
         })
     } catch (error) {
         return res.status(500).json({
@@ -385,13 +385,15 @@ export const getNotification = async (req, res) => {
     }
 }
 
-export const getFriends = async( req , res ) => {
+export const getFriends = async (req, res) => {
     try {
         const chatId = req.query.chatId;
-      
-        const chats = await Chat.find({ members: req.user._id,
-             isGroupChat: false, })
-        .populate("members", "name avatar")
+
+        const chats = await Chat.find({
+            members: req.user._id,
+            isGroupChat: false,
+        })
+            .populate("members", "name avatar")
         const friends = chats.map(({ members }) => {
 
             const otherUser = members.find(
@@ -409,7 +411,7 @@ export const getFriends = async( req , res ) => {
 
         }).filter(Boolean);
 
-        // ✅ Remove duplicates globally
+        //Remove duplicates globally
         const uniqueFriends = [
             ...new Map(
                 friends.map(friend =>
@@ -418,14 +420,8 @@ export const getFriends = async( req , res ) => {
             ).values()
         ];
 
-
-
-     
-     
-        if(chatId){
-            const chat = await Chat.findById(chatId).populate("members","name avatar")
-       
-        
+        if (chatId) {
+            const chat = await Chat.findById(chatId).populate("members", "name avatar")
 
             const memberIds = chat.members.map(m => m._id.toString());
 
@@ -438,16 +434,11 @@ export const getFriends = async( req , res ) => {
                 availableFriends,
             });
         }
-        
-            return res.status(200).json({
-                success: true,
-                uniqueFriends,
-            })
-        
 
-       
-
-
+        return res.status(200).json({
+            success: true,
+            uniqueFriends,
+        })
     } catch (error) {
         return res.status(500).json({
             success: false,

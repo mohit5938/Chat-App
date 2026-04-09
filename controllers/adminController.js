@@ -21,8 +21,8 @@ export const adminLogin = async( req , res ) => {
         const token = jwt.sign(secretKey,process.env.JWT_SECRET)
 return res.status(200).cookie("adminToken",token,{
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    secure: process.env.NODE_ENV === "production" ? true : false,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 24 * 60 * 60 * 1000
 }).json({
     success: true,
@@ -40,8 +40,8 @@ export const adminLogut = async( req , res ) => {
     try {
         return res.status(200).cookie("adminToken","",{
             httpOnly: true,
-            secure: true,
-            sameSite: "none",
+            secure: process.env.NODE_ENV === "production" ? true : false,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             maxAge: 0,
         }).json({
             success: true,
