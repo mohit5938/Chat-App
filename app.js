@@ -30,7 +30,7 @@ export const io = new Server(server, {
     }
 });
 
-console.log("error find", process.env.CLIENT_URL)
+
 
 io.use(socketAuthMiddleware);
 
@@ -40,7 +40,7 @@ app.use(cookieParser());
 const port = process.env.PORT || 4000 ;
 
 app.use(cors({
-    origin: process.env.CLIENT_URL,
+    origin: "https://chat-app-client-cyan-eight.vercel.app",
     credentials: true,
 
 }))
